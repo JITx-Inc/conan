@@ -329,10 +329,20 @@ class ConanFile:
         assert isinstance(env, list), "env argument to ConanFile.run() should be a list"
         envfiles_folder = self.generators_folder or os.getcwd()
         wrapped_cmd = command_env_wrapper(self, command, env, envfiles_folder=envfiles_folder)
+
+        # On windows with win_bash=True, use shell=False and specify executable
+        # because subprocess.Popen(shell=True) forces cmd.exe
+        executable=None
+        if self.settings.os == "Windows" and ((scope=="build" and self.win_bash) or (scope=="run" and self.win_bash_run)):
+            bash_path = self.conf.get("tools.microsoft.bash:path")
+            if isinstance(bash_path, str):
+                shell = False
+                executable = bash_path
+
         from conans.util.runners import conan_run
         if not quiet:
-            ConanOutput().writeln(f"{self.display_name}: RUN: {command}", fg=Color.BRIGHT_BLUE)
-        retcode = conan_run(wrapped_cmd, cwd=cwd, stdout=stdout, shell=shell)
+            ConanOutput().writeln(f"{self.display_name}: RUN (shell={shell}, executable={executable}): {command}", fg=Color.BRIGHT_BLUE)
+        retcode = conan_run(wrapped_cmd, cwd=cwd, stdout=stdout, shell=shell, executable=executable)
         if not quiet:
             ConanOutput().writeln("")
 

@@ -34,7 +34,8 @@ else:
 
 def conan_run(command, stdout=None, stderr=None, cwd=None, shell=True):
     """
-    @param shell:
+    @param shell: on Windows, process command with cmd.exe
+    @param executable: Full path to shell or interpreter for command.  May be None.
     @param stderr:
     @param command: Command to execute
     @param stdout: Instead of print to sys.stdout print to that stream. Could be None
@@ -48,7 +49,7 @@ def conan_run(command, stdout=None, stderr=None, cwd=None, shell=True):
 
     with pyinstaller_bundle_env_cleaned():
         try:
-            proc = subprocess.Popen(command, shell=shell, stdout=out, stderr=err, cwd=cwd)
+            proc = subprocess.Popen(command, shell=shell, executable=executable, stdout=out, stderr=err, cwd=cwd)
         except Exception as e:
             raise ConanException("Error while running cmd\nError: %s" % (str(e)))
 
